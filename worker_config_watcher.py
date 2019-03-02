@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from watchgod import watch
 
 
+
 class Worker(QObject):
     finished = pyqtSignal()
     update_config = pyqtSignal()

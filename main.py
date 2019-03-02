@@ -9,8 +9,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QSystemTrayIcon
 # from rumps import rumps
 
-import worker_config_watcher
-import worker_mouse_watcher
+from workers import mouse_watcher, config_watcher
 from load_plugin import open_plugin
 
 
@@ -26,22 +25,22 @@ def iterate(parent, data):
 
 
 class Tray(QWidget):
-
     # noinspection PyArgumentList
     def __init__(self):
         super().__init__()
         self.menu = QMenu()
         self.icon = QIcon("assets/icon.png")
         self.tray = QSystemTrayIcon()
+        self.menu_active = False
 
-        self.obj = worker_config_watcher.Worker()
+        self.obj = config_watcher.Worker()
         self.thread = QThread()
         self.obj.update_config.connect(self.update_config)
         self.obj.moveToThread(self.thread)
         self.obj.finished.connect(self.thread.quit)
         self.thread.started.connect(self.obj.config_watcher)
 
-        self.obj2 = worker_mouse_watcher.Worker()
+        self.obj2 = mouse_watcher.Worker()
         self.mouse_thread = QThread()
         self.obj2.update_mouse.connect(self.update_mouse)
         self.obj2.moveToThread(self.mouse_thread)
@@ -56,7 +55,6 @@ class Tray(QWidget):
         self.init_ui()
 
     def init_ui(self):
-
         self.tray.setIcon(self.icon)
         self.tray.setVisible(True)
         self.rebuild_menu()
@@ -65,8 +63,10 @@ class Tray(QWidget):
     # def on_systray_activated(self, i_activation_reason):
     #     self.menu.popup(QPoint(20, 20))
 
-    def update_mouse(self):
-        pass
+    def update_mouse(self, x, y):
+        print(x, y)
+        self.menu.popup(QPoint(x, y))
+        self.menu.hideEvent()
 
     def update_config(self):
         if self.rebuild_menu():

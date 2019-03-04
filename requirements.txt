@@ -1,0 +1,6 @@
+PyYAML
+rumps
+PyQt5
+watchgod
+pynput
+py2app

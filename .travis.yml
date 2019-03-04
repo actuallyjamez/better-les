@@ -12,7 +12,7 @@ before_install:
 
 jobs:
   include:
-  - script: setup.py install py2app && cd dist && zip betterles Better\ LES.app
+  - script: python3.6 setup.py install py2app && cd dist && zip betterles Better\ LES.app
     deploy:
     - provider: releases
       api_key: $GITHUB_OAUTH_TOKEN

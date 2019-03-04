@@ -1,16 +1,24 @@
 # main.py
-import json
+import os
 import sys
+import webbrowser
 from functools import partial
-from json import JSONDecodeError
 
-from PyQt5.QtCore import QThread, QPoint
+from PyQt5.QtCore import QThread
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QSystemTrayIcon
-# from rumps import rumps
+from rumps import rumps
+from yaml import load
 
-from workers import mouse_watcher, config_watcher
-from load_plugin import open_plugin
+import config as cf
+from shortcuts.load_plugin import open_plugin
+from workers import config_watcher, keyboard_watcher
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 
 def iterate(parent, data):
@@ -21,7 +29,7 @@ def iterate(parent, data):
             parent.addMenu(new_menu)
             iterate(new_menu, value)
         else:
-            parent.addAction(key, partial(open_plugin, value.lower()))
+            parent.addAction(key, partial(open_plugin, key, value.lower()))
 
 
 class Tray(QWidget):
@@ -29,7 +37,7 @@ class Tray(QWidget):
     def __init__(self):
         super().__init__()
         self.menu = QMenu()
-        self.icon = QIcon("assets/icon.png")
+        self.icon = QIcon(resource_path("assets/icon.png"))
         self.tray = QSystemTrayIcon()
         self.menu_active = False
 
@@ -40,17 +48,17 @@ class Tray(QWidget):
         self.obj.finished.connect(self.thread.quit)
         self.thread.started.connect(self.obj.config_watcher)
 
-        self.obj2 = mouse_watcher.Worker()
-        self.mouse_thread = QThread()
-        self.obj2.update_mouse.connect(self.update_mouse)
-        self.obj2.moveToThread(self.mouse_thread)
-        self.obj2.finished.connect(self.mouse_thread.quit)
-        self.mouse_thread.started.connect(self.obj2.mouse_watcher)
-        # self.mouse_thread.finished.connect(app.exit)
+        self.obj2 = keyboard_watcher.Worker()
+        self.keyboard_watcher_thread = QThread()
+        self.obj2.command_status.connect(self.command_status)
+        self.obj2.moveToThread(self.keyboard_watcher_thread)
+        self.obj2.finished.connect(self.keyboard_watcher_thread.quit)
+        self.keyboard_watcher_thread.started.connect(self.obj2.keyboard_watcher)
+        self.keyboard_watcher_thread.finished.connect(app.exit)
 
         self.thread.start()
 
-        self.mouse_thread.start()
+        self.keyboard_watcher_thread.start()
 
         self.init_ui()
 
@@ -63,33 +71,46 @@ class Tray(QWidget):
     # def on_systray_activated(self, i_activation_reason):
     #     self.menu.popup(QPoint(20, 20))
 
-    def update_mouse(self, x, y):
-        print(x, y)
-        self.menu.popup(QPoint(x, y))
-        self.menu.hideEvent()
+    def command_status(self, i):
+        pass
+        # globals.command_pressed = i
+        # command_pressed = i
+        # print(x, y)
+        # self.menu.hide()
+        # self.menu.popup(QPoint(x, y))
 
     def update_config(self):
         if self.rebuild_menu():
-            pass
-            # rumps.notification(title='Better LES', message='Configuration Reloaded', subtitle='')
+            rumps.notification(title='Better LES', message='Configuration Loaded', subtitle='', )
 
     def rebuild_menu(self):
         config = None
         success = True
         try:
-            with open('config.json') as f:
-                config = json.load(f)
-        except JSONDecodeError as e:
+            with open(cf.CONFIG_LOCATION_MENU) as f:
+                config = load(f)
+        except FileNotFoundError:
+            cf.create_config()
 
-            print(e)
-            error, location = str(e).split(':')
-            # rumps.notification(title='An error occurred while loading the configuration', message=location,
-            #                    subtitle=error)
             success = False
+        except Exception as e:
+            error_str = str(e).splitlines()
+
+            rumps.notification(title='An error occurred while loading the configuration', message=error_str[1],
+                               subtitle=error_str[2])
+            success = False
+
         self.menu.clear()
-        iterate(self.menu, config)
+        if success and config:
+            iterate(self.menu, config)
         self.menu.addSeparator()
-        self.menu.addAction('Quit Better LES', partial(exit))
+        options = QMenu(self.menu)
+        options.setTitle('Options')
+        options.addAction('Configure Menu', partial(os.system, f'open {cf.CONFIG_LOCATION_MENU}'))
+        self.menu.addMenu(options)
+        self.menu.addSeparator()
+        # self.menu.addAction('New Update Available! (1.8.2)', partial(sys.exit))
+        self.menu.addAction('Quit Better LES', partial(sys.exit))
 
         # Add the menu to the tray
         self.tray.setContextMenu(self.menu)

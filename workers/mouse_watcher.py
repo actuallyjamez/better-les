@@ -13,7 +13,7 @@ class Worker(QObject):
             print('Pointer moved to {0}'.format(
                 (x, y)))
 
-        def on_click(x, y, button, pressed):
+        def register_click(x, y, button, pressed):
 
             if button == Button.right and pressed is False:
                 self.update_mouse.emit(x, y)
@@ -27,9 +27,7 @@ class Worker(QObject):
                 (x, y)))
 
         with mouse.Listener(
-                # on_move=on_move,
-                on_click=on_click
-                # on_scroll=on_scroll
+                on_click=register_click
         ) as listener:
             listener.join()
         self.finished.emit()

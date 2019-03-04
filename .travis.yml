@@ -1,7 +1,7 @@
 os: osx
 language: python
 
-node_js:
+python:
 - 3.6
 
 before_install:
@@ -9,16 +9,12 @@ before_install:
 
 jobs:
   include:
-  - stage: Build App Bundle
-    script: setup.py install py2app
-  - stage: Compress
-    script: cd dist && zip betterles Better\ LES.app
-  - stage: Create Relase
-    deploy:
-    - provider: releases
-      api_key: $GITHUB_OAUTH_TOKEN
-      skip_cleanup: true
-      file: dist/betterles.zip
-      draft: true
-      on:
-        tags: true
+    - script: setup.py install py2app && cd dist && zip betterles Better\ LES.app
+      deploy:
+      - provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        skip_cleanup: true
+        file: dist/betterles.zip
+        draft: true
+        on:
+          tags: true

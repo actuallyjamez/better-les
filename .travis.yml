@@ -12,7 +12,7 @@ matrix:
     env: TOXENV=py36
 
 before_install:
-- ./.travis/install.sh
+- brew install python
 - python --version
 - pip install -r requirements.txt
 

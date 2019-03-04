@@ -13,12 +13,12 @@ before_install:
 
 jobs:
   include:
-  - script: python3.6 setup.py install py2app && cd dist && zip betterles Better\ LES.app
+  - script: python3.6 setup.py install py2app && cd dist && zip betterles Better\ LES.app && mv betterles.zip ../ && cd ..
     deploy:
     - provider: releases
       api_key: $GITHUB_OAUTH_TOKEN
       skip_cleanup: true
-      file: dist/betterles.zip
+      file: betterles.zip
       draft: true
       on:
         tags: true

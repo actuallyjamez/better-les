@@ -1,7 +1,9 @@
-import time
+from pathlib import Path
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from watchgod import watch
+
+import config
 
 
 class Worker(QObject):
@@ -10,9 +12,10 @@ class Worker(QObject):
 
     @pyqtSlot(name='config_watcher')
     def config_watcher(self):  # A slot takes no params
-        for changes in watch('./'):
+        home = str(Path.home())
+        for changes in watch(config.CONFIG_DIRECTORY):
             for status, location in changes:
-                if location == './config.json':
+                if location == config.CONFIG_LOCATION_MENU:
                     self.update_config.emit()
 
         self.finished.emit()

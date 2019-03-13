@@ -3,5 +3,5 @@ rumps
 PyQt5
 watchgod
 pynput
-py2app
 sip
+pyinstaller

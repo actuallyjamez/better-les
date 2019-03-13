@@ -1,10 +1,9 @@
 # main.py
 import os
 import sys
-import webbrowser
 from functools import partial
 
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QPoint, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QSystemTrayIcon
 from rumps import rumps
@@ -12,7 +11,7 @@ from yaml import load
 
 import config as cf
 from shortcuts.load_plugin import open_plugin
-from workers import config_watcher, keyboard_watcher
+from workers import config_watcher, mouse_watcher
 
 
 def resource_path(relative_path):
@@ -26,6 +25,7 @@ def iterate(parent, data):
         if isinstance(value, dict):
             new_menu = QMenu(parent)
             new_menu.setTitle(key)
+            new_menu.set(True)
             parent.addMenu(new_menu)
             iterate(new_menu, value)
         else:
@@ -38,8 +38,10 @@ class Tray(QWidget):
         super().__init__()
         self.menu = QMenu()
         self.icon = QIcon(resource_path("assets/icon.png"))
+        self.icon.setIsMask(True)
         self.tray = QSystemTrayIcon()
         self.menu_active = False
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.obj = config_watcher.Worker()
         self.thread = QThread()
@@ -48,17 +50,25 @@ class Tray(QWidget):
         self.obj.finished.connect(self.thread.quit)
         self.thread.started.connect(self.obj.config_watcher)
 
-        self.obj2 = keyboard_watcher.Worker()
-        self.keyboard_watcher_thread = QThread()
-        self.obj2.command_status.connect(self.command_status)
-        self.obj2.moveToThread(self.keyboard_watcher_thread)
-        self.obj2.finished.connect(self.keyboard_watcher_thread.quit)
-        self.keyboard_watcher_thread.started.connect(self.obj2.keyboard_watcher)
-        self.keyboard_watcher_thread.finished.connect(app.exit)
+        # self.obj2 = keyboard_watcher.Worker()
+        # self.keyboard_watcher_thread = QThread()
+        # self.obj2.command_status.connect(self.command_status)
+        # self.obj2.moveToThread(self.keyboard_watcher_thread)
+        # self.obj2.finished.connect(self.keyboard_watcher_thread.quit)
+        # self.keyboard_watcher_thread.started.connect(self.obj2.keyboard_watcher)
+        # self.keyboard_watcher_thread.finished.connect(app.exit)
+
+        self.obj3 = mouse_watcher.Worker()
+        self.mouse_watcher_thread = QThread()
+        self.obj3.spawn_menu.connect(self.spawn_menu)
+        self.obj3.moveToThread(self.mouse_watcher_thread)
+        self.obj3.finished.connect(self.mouse_watcher_thread.quit)
+        self.mouse_watcher_thread.started.connect(self.obj3.mouse_watcher)
+        self.mouse_watcher_thread.finished.connect(app.exit)
 
         self.thread.start()
-
-        self.keyboard_watcher_thread.start()
+        # self.keyboard_watcher_thread.start()
+        self.mouse_watcher_thread.start()
 
         self.init_ui()
 
@@ -71,13 +81,13 @@ class Tray(QWidget):
     # def on_systray_activated(self, i_activation_reason):
     #     self.menu.popup(QPoint(20, 20))
 
-    def command_status(self, i):
+    def spawn_menu(self, x, y):
         pass
         # globals.command_pressed = i
         # command_pressed = i
         # print(x, y)
-        # self.menu.hide()
-        # self.menu.popup(QPoint(x, y))
+        self.menu.destroy()
+        self.menu.popup(QPoint(x, y))
 
     def update_config(self):
         if self.rebuild_menu():
@@ -114,6 +124,7 @@ class Tray(QWidget):
 
         # Add the menu to the tray
         self.tray.setContextMenu(self.menu)
+        # self.command_status()
         return success
 
 

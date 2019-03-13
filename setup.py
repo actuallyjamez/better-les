@@ -24,5 +24,5 @@ setup(
     author='actuallyjamez',
     author_email='actuallyjamez@gmail.com',
     description='LES but better',
-    install_requires=['PyYAML', 'rumps', 'PyQt5', 'watchgod', 'pynput', 'py2app', 'sip']
+    install_requires=['PyYAML', 'rumps', 'PyQt5', 'watchgod', 'pynput', 'pyinstaller', 'sip']
 )

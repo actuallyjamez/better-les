@@ -25,7 +25,6 @@ def iterate(parent, data):
         if isinstance(value, dict):
             new_menu = QMenu(parent)
             new_menu.setTitle(key)
-            new_menu.set(True)
             parent.addMenu(new_menu)
             iterate(new_menu, value)
         else:

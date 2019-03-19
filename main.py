@@ -28,7 +28,7 @@ def iterate(parent, data):
             parent.addMenu(new_menu)
             iterate(new_menu, value)
         else:
-            parent.addAction(key, partial(open_plugin, key, value.lower()))
+            parent.addAction(key, partial(open_plugin, value))
 
 
 class Tray(QWidget):
@@ -85,12 +85,15 @@ class Tray(QWidget):
         # globals.command_pressed = i
         # command_pressed = i
         # print(x, y)
-        self.menu.destroy()
+        os.system('open -a Better\\ LES')
+        self.rebuild_menu()
+        self.menu.activateWindow()
         self.menu.popup(QPoint(x, y))
+        self.menu.setFocus()
 
     def update_config(self):
         if self.rebuild_menu():
-            rumps.notification(title='Better LES', message='Configuration Loaded', subtitle='', )
+            rumps.notification(title='LES', message='Configuration Loaded', subtitle='', )
 
     def rebuild_menu(self):
         config = None
@@ -119,7 +122,7 @@ class Tray(QWidget):
         self.menu.addMenu(options)
         self.menu.addSeparator()
         # self.menu.addAction('New Update Available! (1.8.2)', partial(sys.exit))
-        self.menu.addAction('Quit Better LES', partial(sys.exit))
+        self.menu.addAction('Quit LES', partial(sys.exit))
 
         # Add the menu to the tray
         self.tray.setContextMenu(self.menu)

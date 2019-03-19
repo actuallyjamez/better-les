@@ -21,14 +21,19 @@ def resource_path(relative_path):
 
 
 def iterate(parent, data):
-    for key, value in data.items():
-        if isinstance(value, dict):
+    if isinstance(data, dict):
+        for k, v in data.items():
             new_menu = QMenu(parent)
-            new_menu.setTitle(key)
+            new_menu.setTitle(k)
             parent.addMenu(new_menu)
-            iterate(new_menu, value)
-        else:
-            parent.addAction(key, partial(open_plugin, value))
+            iterate(new_menu, v)
+
+    if isinstance(data, (list,)):
+        for i in data:
+            if isinstance(i, dict):
+                iterate(parent, i)
+            else:
+                parent.addAction(i, partial(open_plugin, i))
 
 
 class Tray(QWidget):
@@ -93,7 +98,7 @@ class Tray(QWidget):
 
     def update_config(self):
         if self.rebuild_menu():
-            rumps.notification(title='LES', message='Configuration Loaded', subtitle='', )
+            rumps.notification(title='Better LES', message='Configuration Loaded', subtitle='', )
 
     def rebuild_menu(self):
         config = None
@@ -106,15 +111,15 @@ class Tray(QWidget):
 
             success = False
         except Exception as e:
-            error_str = str(e).splitlines()
+            # error_str = str(e).splitlines()
 
-            rumps.notification(title='An error occurred while loading the configuration', message=error_str[1],
-                               subtitle=error_str[2])
+            rumps.notification(title='An error occurred while loading the configuration', message=str(e),
+                               subtitle='')
             success = False
 
         self.menu.clear()
         if success and config:
-            iterate(self.menu, config)
+            iterate(self.menu, config['menu'])
         self.menu.addSeparator()
         options = QMenu(self.menu)
         options.setTitle('Options')
@@ -122,7 +127,7 @@ class Tray(QWidget):
         self.menu.addMenu(options)
         self.menu.addSeparator()
         # self.menu.addAction('New Update Available! (1.8.2)', partial(sys.exit))
-        self.menu.addAction('Quit LES', partial(sys.exit))
+        self.menu.addAction('Quit Better LES', partial(sys.exit))
 
         # Add the menu to the tray
         self.tray.setContextMenu(self.menu)

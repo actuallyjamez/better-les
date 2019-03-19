@@ -10,13 +10,16 @@ def create_config():
     os.makedirs(os.path.dirname(CONFIG_LOCATION_MENU), exist_ok=True)
     if not os.path.isfile(CONFIG_LOCATION_MENU):
         with open(CONFIG_LOCATION_MENU, "w") as f:
-            # f.write("# Configure your menus here. Sub folders are supported.\n")
             f.write("""# Configure your menus here. Sub folders are supported.
+# Plugin names are the same as in the Live plugin browser.
+# NOTE: This feature will not function with audio units enabled in Live preferences due to limitations in the Live API.
 # Example config:
-# 
-# Instruments:
-#   Kontakt 6: kontakt vst
-#   Addictive Keys: addictive keys vst
-# Synths:
-#   Serum: serum vst
+menu:
+  # - Instruments:
+  #   - Kontakt
+  #   - Addictive Keys
+  # - Synths:
+  #   - Serum
+  # - OTT
+
 """)

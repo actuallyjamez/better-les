@@ -1,3 +1,7 @@
+#os: osx
+#osx_image: xcode9.3
+#language: python
+#python: "3.6"
 os: osx
 language: generic
 
@@ -9,12 +13,12 @@ before_install:
 
 jobs:
   include:
-  - script: pyinstaller -c --add-data 'assets/icon.png:assets' main.py --windowed --onefile --clean && ditto -c -k --sequesterRsrc --keepParent dist/Better\ LES.app betterles.zip
+  - script: python3.6 setup.py install py2app && cd dist && zip betterles Better\ LES.app
     deploy:
     - provider: releases
       api_key: $GITHUB_OAUTH_TOKEN
       skip_cleanup: true
-      file: betterles.zip
+      file: dist/betterles.zip
       draft: true
       on:
         tags: true
